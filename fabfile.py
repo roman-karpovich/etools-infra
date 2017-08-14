@@ -48,12 +48,26 @@ def debug(quick=False, DEBUG_PORT='51312'):
         local('docker-compose -f docker-compose.dev.yml up --force-recreate %s' % ('--build' if not quick else ''))
 
 def remove_docker_containers():
-    local('docker stop $(docker ps -q)')
-    local('docker rm $(docker ps -q)')
+    if platform.system() == 'Windows':
+        containerlist = local('docker ps -q 2>&1 | xargs', capture=True)
+        if containerlist:
+            local('docker stop %s' % containerlist)
+            local('docker rm %s' % containerlist)
+        else:
+            print 'No running containers found'
+    else:
+        local('docker stop $(docker ps -q)')
+        local('docker rm $(docker ps -q)')
 
 def stop_docker_containers():
-    local('docker stop $(docker ps -q)')
-
+    if platform.system() == 'Windows':
+        containerlist = local('docker ps -q 2>&1 | xargs', capture=True)
+        if containerlist:
+            local('docker stop %s' % containerlist)
+        else:
+            print 'No running containers found'
+    else:
+        local('docker stop $(docker ps -q)')
 
 def up(quick=False):
     local('docker-compose -f docker-compose.yml up --force-recreate')
